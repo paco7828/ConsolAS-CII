@@ -269,6 +269,36 @@ public class Circuit {
         return name;
     }
 
+    // Renames a net
+    public void renameNet(String oldName, String newName) {
+        Net net = findNet(oldName.toUpperCase());
+        if (net == null) {
+            throw new ConfigurationException("No such net: " + oldName);
+        }
+
+        String name = checkNetName(newName);
+
+        if (name.equals(net.getName())) {
+            throw new ConfigurationException("The net is already called " + name);
+        }
+
+        if (findNet(name) != null) {
+            throw new ConfigurationException("A net called " + name + " already exists");
+        }
+
+        net.rename(name);
+    }
+
+    // Finds any net by name
+    private Net findNet(String name) {
+        for (Net net : nets) {
+            if (net.getName().equals(name)) {
+                return net;
+            }
+        }
+        return null;
+    }
+
     // All problems of all components in reference order
     public ArrayList<String> check() {
         ArrayList<Component> sorted = getComponents();

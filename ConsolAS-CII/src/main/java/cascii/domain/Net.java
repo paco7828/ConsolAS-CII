@@ -10,8 +10,8 @@ import java.util.ArrayList;
 // Named nets (VIN, GND, ...) = Created by the user
 // Unnamed nets (N1, N2) = Created automatically
 public class Net {
-    private final String name;
-    private final boolean named;
+    private String name;
+    private boolean named;
     private final ArrayList<Pin> pins = new ArrayList<>();
 
     Net(String name, boolean named) {
@@ -49,5 +49,11 @@ public class Net {
             }
         }
         return false;
+    }
+
+    // Rename a net to a custom one
+    void rename(String newName) {
+        name = newName;
+        named = true;
     }
 }

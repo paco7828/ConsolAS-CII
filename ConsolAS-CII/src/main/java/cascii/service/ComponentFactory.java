@@ -19,12 +19,16 @@ public class ComponentFactory {
         String key = type.toUpperCase();
         switch (key) {
             case "R":
+            case "RESISTOR":
                 return new Resistor(Units.parse(requireValue(key, value)));
             case "C":
+            case "CAPACITOR":
                 return new Capacitor(Units.parse(requireValue(key, value)));
             case "L":
+            case "INDUCTOR":
                 return new Inductor(Units.parse(requireValue(key, value)));
             case "D":
+            case "DIODE":
                 requireNoValue(key, value);
                 return new Diode();
             case "LED":

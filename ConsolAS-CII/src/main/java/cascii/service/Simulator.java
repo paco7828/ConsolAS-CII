@@ -17,17 +17,18 @@ import java.util.Comparator;
 // Handles console commands
 public class Simulator {
     private static final String HELP =
-            "add <R|C|L> <value>                     e.g. add R 50k | add C 100n | add L 10u\n"
+            "add <R|C|L> <value>                     e.g. add R 50k | add resistor 50k | add C 100n\n"
                     + "add <D|LED|TP4056|MT3608|AMS1117-x>      no value, e.g. add LED | add TP4056 | add AMS1117-3.3\n"
                     + "                                         (AMS1117-x: 1.2 1.5 1.8 2.5 2.85 3.3 5.0 ADJ)\n"
                     + "connect <pin|net> <pin|net>              e.g. connect R1.1 U1.VIN | connect C1.2 GND\n"
                     + "disconnect <pin>                         e.g. disconnect R1.1\n"
                     + "remove <ref>                             e.g. remove R1\n"
-                    + "show [ref]                               draw the whole schematic or one part\n"
+                    + "rename net <old-name> <new-name>         e.g. rename net N1 VIN\n"
+                    + "draw [ref]                               draw the whole schematic, or only one part (draw U1)\n"
+                    + "show pins <ref>                          pins of a part and what they are connected to\n"
                     + "list [sort ref|type|value]               list the parts\n"
                     + "nets                                     list the nets\n"
-                    + "info <ref>                               pins of a part and what they are connected to\n"
-                    + "check                                    look for problems in the circuit\n"
+                    + "run drc                                  design rule check: look for problems in the circuit\n"
                     + "analyze <ref> <args>                     e.g. analyze U1 5 200m (input voltage, load current)\n"
                     + "new <name> | save | load <name> | help | exit";
 
@@ -42,12 +43,13 @@ public class Simulator {
             case "connect" -> connect(parts);
             case "disconnect" -> disconnect(parts);
             case "remove" -> remove(parts);
-            case "show" -> show(parts);
+            case "draw" -> draw(parts);
             case "list" -> list(parts);
             case "nets" -> nets();
-            case "info" -> info(parts);
-            case "check" -> check();
+            case "show" -> showPins(parts);
+            case "run" -> run(parts);
             case "analyze" -> analyze(parts);
+            case "rename" -> rename(parts);
             case "new" -> {
                 circuit = new Circuit(rest(line, "new <name>"));
                 yield "Circuit '" + circuit.getName() + "' created";
@@ -103,13 +105,13 @@ public class Simulator {
         return parts[1].toUpperCase() + " removed";
     }
 
-    private String show(String[] parts) {
+    private String draw(String[] parts) {
         if (parts.length == 2) {
             return circuit.find(parts[1]).draw();
         }
 
         if (parts.length != 1) {
-            throw new ConfigurationException("Usage: show [ref]");
+            throw new ConfigurationException("Usage: draw [ref]");
         }
 
         ArrayList<Component> components = circuit.getComponentsSorted(comparatorFor("ref"));
@@ -198,12 +200,12 @@ public class Simulator {
         return sb.toString();
     }
 
-    private String info(String[] parts) {
-        if (parts.length != 2) {
-            throw new ConfigurationException("Usage: info <ref>");
+    private String showPins(String[] parts) {
+        if (parts.length != 3 || !parts[1].equalsIgnoreCase("pins")) {
+            throw new ConfigurationException("Usage: show pins <ref>");
         }
 
-        Component component = circuit.find(parts[1]);
+        Component component = circuit.find(parts[2]);
         StringBuilder sb = new StringBuilder(component.getRef() + "  " + component.describe());
 
         for (Pin pin : component.getPins()) {
@@ -227,6 +229,23 @@ public class Simulator {
         }
 
         return sb.toString();
+    }
+
+    private String run(String[] parts) {
+        if (parts.length != 2 || !parts[1].equalsIgnoreCase("drc")) {
+            throw new ConfigurationException("Usage: run drc");
+        }
+
+        return check();
+    }
+
+    private String rename(String[] parts) {
+        if (parts.length != 4 || !parts[1].equalsIgnoreCase("net")) {
+            throw new ConfigurationException("Usage: rename net <old-name> <new-name>");
+        }
+
+        circuit.renameNet(parts[2], parts[3]);
+        return "Net " + parts[2].toUpperCase() + " renamed to " + parts[3].toUpperCase();
     }
 
     private String analyze(String[] parts) {
