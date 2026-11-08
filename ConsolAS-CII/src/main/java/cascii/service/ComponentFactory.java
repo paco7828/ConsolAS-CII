@@ -28,12 +28,13 @@ public class ComponentFactory {
             case "LED":
                 requireNoValue(key, value);
                 return new Led();
-            case "AMS1117-3.3":
-                requireNoValue(key, value);
-                return new Ams1117();
             default:
+                if (key.startsWith("AMS1117-")) {
+                    requireNoValue(key, value);
+                    return new Ams1117(key.substring("AMS1117-".length()));
+                }
                 throw new ConfigurationException("Unknown component type: " + type
-                        + " (R, C, L, D, LED, AMS1117-3.3)");
+                        + " (R, C, L, D, LED, AMS1117-<1.2|1.5|1.8|2.5|2.85|3.3|5.0|ADJ>)");
         }
     }
 

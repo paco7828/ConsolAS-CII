@@ -4,17 +4,40 @@ import cascii.config.Config;
 
 import java.util.ArrayList;
 
-// AMS1117-3.3: fixed 3.3V low-dropout linear regulator
+// AMS1117 low-dropout linear regulator: fixed (1.2 ... 5.0 V) and adjustable (ADJ) versions
 // Pins:
 /*
- * 1 - GND
+ * 1 - GND (fixed versions) or ADJ (adjustable version)
  * 2 - VOUT
  * 3 - VIN
  * 4 - TAB (internally connected to VOUT)
  */
 public class Ams1117 extends IC {
-    public Ams1117() {
-        addPin("GND", true);
+    private static final String[] VARIANTS = {"1.2", "1.5", "1.8", "2.5", "2.85", "3.3", "5.0", "ADJ"};
+    private static final double[] VOUT = {1.2, 1.5, 1.8, 2.5, 2.85, 3.3, 5.0, 0};
+
+    private final String variant;
+    private final double nominal; // 0 for ADJ
+    private final boolean adjustable;
+
+    public Ams1117(String variant) {
+        int index = -1;
+        for (int i = 0; i < VARIANTS.length; i++) {
+            if (VARIANTS[i].equalsIgnoreCase(variant)) {
+                index = i;
+            }
+        }
+
+        if (index < 0) {
+            throw new ConfigurationException("Unknown AMS1117 version: " + variant
+                    + " (1.2, 1.5, 1.8, 2.5, 2.85, 3.3, 5.0, ADJ)");
+        }
+
+        this.variant = VARIANTS[index];
+        this.nominal = VOUT[index];
+        this.adjustable = this.variant.equals("ADJ");
+
+        addPin(adjustable ? "ADJ" : "GND", true);
         addPin("VOUT", true);
         addPin("VIN", true);
         addPin("TAB", false);
@@ -22,23 +45,26 @@ public class Ams1117 extends IC {
 
     @Override
     public String getTypeName() {
-        return "AMS1117-3.3";
+        return "AMS1117-" + variant;
     }
 
     @Override
     public String getTypeKey() {
-        return "AMS1117-3.3";
+        return "AMS1117-" + variant;
     }
 
     @Override
     public String describe() {
-        return "AMS1117-3.3 (LDO voltage regulator)";
+        if (adjustable) {
+            return getTypeName() + " (adjustable LDO voltage regulator)";
+        }
+        return getTypeName() + " (" + nominal + " V LDO voltage regulator)";
     }
 
     @Override
     public ArrayList<String> check() {
         ArrayList<String> problems = super.check();
-        Net gnd = getPin("GND").getNet();
+        Net first = getPin("1").getNet(); // GND or ADJ
         Net vout = getPin("VOUT").getNet();
         Net vin = getPin("VIN").getNet();
         Net tab = getPin("TAB").getNet();
@@ -46,8 +72,11 @@ public class Ams1117 extends IC {
         if (vin != null && vin == vout) {
             problems.add(getRef() + ": VIN and VOUT are on the same net (" + vin.getName() + ")");
         }
-        if (gnd != null && (gnd == vin || gnd == vout)) {
-            problems.add(getRef() + ": GND is shorted to VIN or VOUT (net " + gnd.getName() + ")");
+        if (!adjustable && first != null && (first == vin || first == vout)) {
+            problems.add(getRef() + ": GND is shorted to VIN or VOUT (net " + first.getName() + ")");
+        }
+        if (adjustable && first != null && first == vin) {
+            problems.add(getRef() + ": ADJ is on the VIN net (" + first.getName() + ")");
         }
         if (tab != null && tab != vout) {
             problems.add(getRef() + ": the TAB is internally connected to VOUT, it should be on the VOUT net");
@@ -57,6 +86,14 @@ public class Ams1117 extends IC {
         }
         if (vout != null && !vout.hasPinOfType("capacitor")) {
             problems.add(getRef() + ": no output capacitor on the VOUT net");
+        }
+        if (adjustable && first != null && vout != null) {
+            if (resistorBetween(first, vout.getName()) == null) {
+                problems.add(getRef() + ": no resistor between VOUT and ADJ (R1)");
+            }
+            if (resistorBetween(first, "GND") == null) {
+                problems.add(getRef() + ": no resistor between ADJ and GND (R2)");
+            }
         }
         return problems;
     }
@@ -75,15 +112,16 @@ public class Ams1117 extends IC {
             load = Units.parse(args[1]);
         }
 
-        double nominal = Config.getDouble("ams1117_3v3.vout", 3.3);
-        double dropout = Config.getDouble("ams1117_3v3.dropout", 1.3);
-        double maxVin = Config.getDouble("ams1117_3v3.max_vin", 15.0);
-        double maxCurrent = Config.getDouble("ams1117_3v3.max_current", 1.0);
+        double dropout = Config.getDouble("ams1117.dropout", 1.3);
+        double maxVin = Config.getDouble("ams1117.max_vin", 15.0);
+        double maxCurrent = Config.getDouble("ams1117.max_current", 1.0);
+
+        double target = adjustable ? adjustableVout() : nominal;
 
         double vout;
         String mode;
-        if (vin >= nominal + dropout) {
-            vout = nominal;
+        if (vin >= target + dropout) {
+            vout = target;
             mode = "regulating";
         } else {
             vout = Math.max(0, vin - dropout);
@@ -103,5 +141,43 @@ public class Ams1117 extends IC {
             sb.append("\n  WARNING: the load current is above the maximum (").append(maxCurrent).append(" A)");
         }
         return sb.toString();
+    }
+
+    // Vout = Vref * (1 + R2 / R1) + Iadj * R2
+    // R1 = VOUT - ADJ, R2 = ADJ - GND
+    private double adjustableVout() {
+        Net adj = getPin("ADJ").getNet();
+        Net vout = getPin("VOUT").getNet();
+        if (adj == null || vout == null) {
+            throw new ConfigurationException(getRef() + ": connect ADJ and VOUT first (R1: VOUT-ADJ, R2: ADJ-GND)");
+        }
+
+        Resistor r1 = resistorBetween(adj, vout.getName());
+        Resistor r2 = resistorBetween(adj, "GND");
+        if (r1 == null || r2 == null) {
+            throw new ConfigurationException(getRef() + ": needs a resistor between VOUT and ADJ (R1)"
+                    + " and one between ADJ and the GND net (R2)");
+        }
+        if (r1.getValue() <= 0) {
+            throw new ConfigurationException(r1.getRef() + " must be greater than 0");
+        }
+
+        double vref = Config.getDouble("ams1117_adj.vref", 1.25);
+        double iadj = Config.getDouble("ams1117_adj.iadj", 0.000055);
+        return vref * (1 + r2.getValue() / r1.getValue()) + iadj * r2.getValue();
+    }
+
+    // Finds a resistor with one pin on <net> and the other pin on the net called <otherNetName>
+    private Resistor resistorBetween(Net net, String otherNetName) {
+        for (Pin pin : net.getPins()) {
+            if (pin.getOwner() instanceof Resistor) {
+                for (Pin other : pin.getOwner().getPins()) {
+                    if (other != pin && other.getNet() != null && other.getNet().getName().equals(otherNetName)) {
+                        return (Resistor) pin.getOwner();
+                    }
+                }
+            }
+        }
+        return null;
     }
 }
