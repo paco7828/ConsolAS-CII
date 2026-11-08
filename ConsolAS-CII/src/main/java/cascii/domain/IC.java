@@ -9,6 +9,20 @@ public abstract class IC extends Component {
         super("U");
     }
 
+    // Finds a resistor with one pin on <net> and the other pin on the net called <otherNetName>
+    protected Resistor resistorBetween(Net net, String otherNetName) {
+        for (Pin pin : net.getPins()) {
+            if (pin.getOwner() instanceof Resistor) {
+                for (Pin other : pin.getOwner().getPins()) {
+                    if (other != pin && other.getNet() != null && other.getNet().getName().equals(otherNetName)) {
+                        return (Resistor) pin.getOwner();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     @Override
     public String draw() {
         ArrayList<Pin> pins = getPins();

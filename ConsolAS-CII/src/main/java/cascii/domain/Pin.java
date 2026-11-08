@@ -47,8 +47,14 @@ public class Pin {
     }
 
     // True if the text is the name or the number of this pin
+    // A name like GND/EPAD can also be given as just GND
     public boolean matches(String id) {
-        return name.equalsIgnoreCase(id) || String.valueOf(number).equals(id);
+        if (name.equalsIgnoreCase(id) || String.valueOf(number).equals(id)) {
+            return true;
+        }
+
+        int slash = name.indexOf('/');
+        return slash > 0 && name.substring(0, slash).equalsIgnoreCase(id);
     }
 
     // What the pin is connected to

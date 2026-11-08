@@ -1,6 +1,7 @@
 package cascii.service;
 
 import cascii.domain.Ams1117;
+import cascii.domain.Tp4056;
 import cascii.domain.Capacitor;
 import cascii.domain.Component;
 import cascii.domain.ConfigurationException;
@@ -28,13 +29,15 @@ public class ComponentFactory {
             case "LED":
                 requireNoValue(key, value);
                 return new Led();
+            case "TP4056":
+                requireNoValue(key, value);
+                return new Tp4056();
             default:
                 if (key.startsWith("AMS1117-")) {
                     requireNoValue(key, value);
                     return new Ams1117(key.substring("AMS1117-".length()));
                 }
-                throw new ConfigurationException("Unknown component type: " + type
-                        + " (R, C, L, D, LED, AMS1117-<1.2|1.5|1.8|2.5|2.85|3.3|5.0|ADJ>)");
+                throw new ConfigurationException("Unknown component type: " + type + " (R, C, L, D, LED, TP4056, AMS1117-<1.2|1.5|1.8|2.5|2.85|3.3|5.0|ADJ>)");
         }
     }
 

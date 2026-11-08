@@ -162,22 +162,8 @@ public class Ams1117 extends IC {
             throw new ConfigurationException(r1.getRef() + " must be greater than 0");
         }
 
-        double vref = Config.getDouble("ams1117_adj.vref", 1.25);
-        double iadj = Config.getDouble("ams1117_adj.iadj", 0.000055);
+        double vref = Config.getDouble("ams1117.vref", 1.25);
+        double iadj = Config.getDouble("ams1117.iadj", 0.000055);
         return vref * (1 + r2.getValue() / r1.getValue()) + iadj * r2.getValue();
-    }
-
-    // Finds a resistor with one pin on <net> and the other pin on the net called <otherNetName>
-    private Resistor resistorBetween(Net net, String otherNetName) {
-        for (Pin pin : net.getPins()) {
-            if (pin.getOwner() instanceof Resistor) {
-                for (Pin other : pin.getOwner().getPins()) {
-                    if (other != pin && other.getNet() != null && other.getNet().getName().equals(otherNetName)) {
-                        return (Resistor) pin.getOwner();
-                    }
-                }
-            }
-        }
-        return null;
     }
 }

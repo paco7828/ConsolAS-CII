@@ -17,7 +17,7 @@ import java.util.Comparator;
 // Handles console commands
 public class Simulator {
     private static final String HELP =
-            "add <R|C|L|D|LED|AMS1117-x> [value]     e.g. add R 50k | add C 100n | add AMS1117-3.3 | add AMS1117-ADJ\n"
+            "add <R|C|L|D|LED|AMS1117-x>|TP4056 [value]     e.g. add R 50k | add C 100n | add AMS1117-3.3 | add AMS1117-ADJ\n"
                     + "connect <pin|net> <pin|net>              e.g. connect R1.1 U1.VIN | connect C1.2 GND\n"
                     + "disconnect <pin>                         e.g. disconnect R1.1\n"
                     + "remove <ref>                             e.g. remove R1\n"
