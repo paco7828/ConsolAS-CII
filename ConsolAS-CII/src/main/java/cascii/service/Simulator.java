@@ -17,7 +17,9 @@ import java.util.Comparator;
 // Handles console commands
 public class Simulator {
     private static final String HELP =
-            "add <R|C|L|D|LED|AMS1117-x>|TP4056 [value]     e.g. add R 50k | add C 100n | add AMS1117-3.3 | add AMS1117-ADJ\n"
+            "add <R|C|L> <value>                     e.g. add R 50k | add C 100n | add L 10u\n"
+                    + "add <D|LED|TP4056|MT3608|AMS1117-x>      no value, e.g. add LED | add TP4056 | add AMS1117-3.3\n"
+                    + "                                         (AMS1117-x: 1.2 1.5 1.8 2.5 2.85 3.3 5.0 ADJ)\n"
                     + "connect <pin|net> <pin|net>              e.g. connect R1.1 U1.VIN | connect C1.2 GND\n"
                     + "disconnect <pin>                         e.g. disconnect R1.1\n"
                     + "remove <ref>                             e.g. remove R1\n"
@@ -65,7 +67,7 @@ public class Simulator {
 
     private String add(String[] parts) {
         if (parts.length < 2 || parts.length > 3) {
-            throw new ConfigurationException("Usage: add <R|C|L|D|LED|AMS1117-x> [value]");
+            throw new ConfigurationException("Usage: add <R|C|L> <value> | add <D|LED|TP4056|MT3608|AMS1117-x>");
         }
 
         String value = parts.length == 3 ? parts[2] : null;

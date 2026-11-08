@@ -11,11 +11,16 @@ public abstract class IC extends Component {
 
     // Finds a resistor with one pin on <net> and the other pin on the net called <otherNetName>
     protected Resistor resistorBetween(Net net, String otherNetName) {
+        return (Resistor) partBetween(net, otherNetName, "resistor");
+    }
+
+    // Finds a part of the given type (example: "inductor") with one pin on <net> and another pin on the net called <otherNetName>
+    protected Component partBetween(Net net, String otherNetName, String typeName) {
         for (Pin pin : net.getPins()) {
-            if (pin.getOwner() instanceof Resistor) {
+            if (pin.getOwner().getTypeName().equals(typeName)) {
                 for (Pin other : pin.getOwner().getPins()) {
                     if (other != pin && other.getNet() != null && other.getNet().getName().equals(otherNetName)) {
-                        return (Resistor) pin.getOwner();
+                        return pin.getOwner();
                     }
                 }
             }
