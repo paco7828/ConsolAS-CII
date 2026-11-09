@@ -6,12 +6,20 @@ import java.util.Comparator;
 
 // A schematic has components (with pins) and nets that join pins together.
 public class Circuit {
-    private final String name;
+    private String name;
     private final ArrayList<Component> components = new ArrayList<>();
     private final ArrayList<Net> nets = new ArrayList<>();
     private int autoNetCounter = 0;
 
     public Circuit(String name) {
+        this.name = checkName(name);
+    }
+
+    public void setName(String name) {
+        this.name = checkName(name);
+    }
+
+    private String checkName(String name) {
         if (TextUtil.isBlank(name)) {
             throw new ConfigurationException("Circuit name must not be empty");
         }
@@ -20,7 +28,7 @@ public class Circuit {
             throw new ConfigurationException("Circuit name must not contain ';'");
         }
 
-        this.name = name.trim();
+        return name.trim();
     }
 
     public String getName() {

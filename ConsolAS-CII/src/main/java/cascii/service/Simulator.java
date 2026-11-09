@@ -30,6 +30,8 @@ public class Simulator {
                     + "nets                                     list the nets\n"
                     + "run drc                                  design rule check: look for problems in the circuit\n"
                     + "analyze <ref> <args>                     e.g. analyze U1 5 200m (input voltage, load current)\n"
+                    + "clear | cls                               clear the screen\n"
+                    + "rename circuit <new-name>                 e.g. rename circuit My charger\n"
                     + "new <name> | save | load <name> | help | exit";
 
     private final ComponentFactory factory = new ComponentFactory();
@@ -240,12 +242,17 @@ public class Simulator {
     }
 
     private String rename(String[] parts) {
-        if (parts.length != 4 || !parts[1].equalsIgnoreCase("net")) {
-            throw new ConfigurationException("Usage: rename net <old-name> <new-name>");
+        if (parts.length == 4 && parts[1].equalsIgnoreCase("net")) {
+            circuit.renameNet(parts[2], parts[3]);
+            return "Net " + parts[2].toUpperCase() + " renamed to " + parts[3].toUpperCase();
         }
 
-        circuit.renameNet(parts[2], parts[3]);
-        return "Net " + parts[2].toUpperCase() + " renamed to " + parts[3].toUpperCase();
+        if (parts.length >= 3 && parts[1].equalsIgnoreCase("circuit")) {
+            circuit.setName(String.join(" ", Arrays.copyOfRange(parts, 2, parts.length)));
+            return "Circuit renamed to '" + circuit.getName() + "'";
+        }
+
+        throw new ConfigurationException("Usage: rename net <old-name> <new-name> | rename circuit <new-name>");
     }
 
     private String analyze(String[] parts) {
