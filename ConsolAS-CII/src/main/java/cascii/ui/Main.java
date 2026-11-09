@@ -29,6 +29,11 @@ public class Main {
                 continue;
             }
 
+            if (line.equalsIgnoreCase("clear") || line.equalsIgnoreCase("cls")) {
+                clearScreen();
+                continue;
+            }
+
             if (line.equalsIgnoreCase("exit")) {
                 break;
             }
@@ -38,6 +43,20 @@ public class Main {
             } catch (ConfigurationException | IOException e) {
                 System.out.println("ERROR: " + e.getMessage());
             }
+        }
+    }
+
+    // Clears the console like cls (Windows) or clear (Linux/Mac)
+    private static void clearScreen() {
+        try {
+            if (System.getProperty("os.name").toLowerCase().contains("win")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                System.out.print("\033[H\033[2J");
+                System.out.flush();
+            }
+        } catch (IOException | InterruptedException e) {
+            System.out.println("Could not clear the screen");
         }
     }
 }
