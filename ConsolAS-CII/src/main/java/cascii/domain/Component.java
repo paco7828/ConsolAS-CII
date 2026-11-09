@@ -14,7 +14,11 @@ public abstract class Component implements Comparable<Component> {
 
     // Subclasses call this in their constructor
     protected final void addPin(String name, boolean required) {
-        pins.add(new Pin(this, pins.size() + 1, name, required));
+        addPin(name, null, required);
+    }
+
+    protected final void addPin(String name, String alias, boolean required) {
+        pins.add(new Pin(this, pins.size() + 1, name, alias, required));
     }
 
     public String getPrefix() {

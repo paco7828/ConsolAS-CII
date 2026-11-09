@@ -30,7 +30,7 @@ public class Units {
 
         // Optional unit letter at the end: 5V, 100mA, 10uF, 1mH
         char unit = number.charAt(number.length() - 1);
-        if (number.length() > 1 && "VAFHvafh\u03a9".indexOf(unit) >= 0) {
+        if (number.length() > 1 && "VAFHRvafhr\u03a9".indexOf(unit) >= 0) {
             number = number.substring(0, number.length() - 1);
         }
 

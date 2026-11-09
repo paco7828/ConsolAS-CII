@@ -6,12 +6,14 @@ public class Pin {
     private final int number;
     private final String name;
     private final boolean required;
+    private final String alias;
     private Net net;
 
-    Pin(Component owner, int number, String name, boolean required) {
+    Pin(Component owner, int number, String name, String alias, boolean required) {
         this.owner = owner;
         this.number = number;
         this.name = name;
+        this.alias = alias;
         this.required = required;
     }
 
@@ -50,6 +52,10 @@ public class Pin {
     // A name like GND/EPAD can also be given as just GND
     public boolean matches(String id) {
         if (name.equalsIgnoreCase(id) || String.valueOf(number).equals(id)) {
+            return true;
+        }
+
+        if (alias != null && alias.equalsIgnoreCase(id)) {
             return true;
         }
 

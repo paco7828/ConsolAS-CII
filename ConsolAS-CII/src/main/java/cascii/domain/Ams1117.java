@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * 1 - GND (fixed versions) or ADJ (adjustable version)
  * 2 - VOUT
  * 3 - VIN
- * 4 - TAB (internally connected to VOUT)
+ * 4 - TAB/VOUT (internally connected to VOUT)
  */
 public class Ams1117 extends IC {
     private static final String[] VARIANTS = {"1.2", "1.5", "1.8", "2.5", "2.85", "3.3", "5.0", "ADJ"};
@@ -40,7 +40,7 @@ public class Ams1117 extends IC {
         addPin(adjustable ? "ADJ" : "GND", true);
         addPin("VOUT", true);
         addPin("VIN", true);
-        addPin("TAB", false);
+        addPin("TAB/VOUT", false);
     }
 
     @Override

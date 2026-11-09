@@ -1,9 +1,9 @@
 package cascii.domain;
 
-// Pin 1 = A (anode), pin 2 = K (cathode)
+// Pin 1 = Anode, pin 2 = Cathode
 public class Led extends TwoPinComponent {
     public Led() {
-        super("LED", "A", "K");
+        super("LED", "ANODE", "A", "CATHODE", "K");
     }
 
     @Override

@@ -149,7 +149,7 @@ public class Circuit {
     }
 
     private boolean isPin(String text) {
-        return text.indexOf('.') >= 0;
+        return text.indexOf('.') >= 0 && text.indexOf('(') < 0;
     }
 
     private void joinPins(Pin a, Pin b) {
@@ -243,26 +243,36 @@ public class Circuit {
         return null;
     }
 
-    // Net names: letters, digits, _, +
+    // Net names: letters, digits, _, + and an optional voltage in brackets
+    // examples: GND, VCC, VCC(5V), VBAT(3.7V)
     // Returns name in uppercase
     private String checkNetName(String text) {
         String name = text.toUpperCase();
+        String base = name;
 
-        for (int i = 0; i < name.length(); i++) {
-            char c = name.charAt(i);
+        int open = name.indexOf('(');
+        if (open >= 0) {
+            if (!name.matches("[A-Z0-9_+]+\\([0-9]+(\\.[0-9]+)?V\\)")) {
+                throw new ConfigurationException("Invalid net name: '" + text + "' (example: VCC(5V), VCC(3.3V))");
+            }
+            base = name.substring(0, open);
+        }
+
+        for (int i = 0; i < base.length(); i++) {
+            char c = base.charAt(i);
             boolean ok = (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '+';
             if (!ok) {
                 throw new ConfigurationException("Invalid net name: '" + text + "' (letters, digits, _, +)");
             }
         }
 
-        if (name.matches("N[0-9]+") || name.equals("NC")) {
-            throw new ConfigurationException("The net name " + name + " is reserved");
+        if (base.matches("N[0-9]+") || base.equals("NC")) {
+            throw new ConfigurationException("The net name " + base + " is reserved");
         }
 
         for (Component component : components) {
-            if (component.getRef().equalsIgnoreCase(name)) {
-                throw new ConfigurationException(name + " is a component, use one of its pins (e.g. " + name + ".1)");
+            if (component.getRef().equalsIgnoreCase(base)) {
+                throw new ConfigurationException(base + " is a component, use one of its pins (e.g. " + base + ".1)");
             }
         }
 

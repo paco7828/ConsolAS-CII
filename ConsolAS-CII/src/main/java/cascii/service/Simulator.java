@@ -20,7 +20,7 @@ public class Simulator {
             "add <R|C|L> <value>                     e.g. add R 50k | add resistor 50k | add C 100n\n"
                     + "add <D|LED|TP4056|MT3608|AMS1117-x>      no value, e.g. add LED | add TP4056 | add AMS1117-3.3\n"
                     + "                                         (AMS1117-x: 1.2 1.5 1.8 2.5 2.85 3.3 5.0 ADJ)\n"
-                    + "connect <pin|net> <pin|net>              e.g. connect R1.1 U1.VIN | connect C1.2 GND\n"
+                    + "connect <pin|net> <pin|net>              e.g. connect R1.1 U1.VIN | connect C1.2 GND | connect LED1.ANODE VCC(5V)\n"
                     + "disconnect <pin>                         e.g. disconnect R1.1\n"
                     + "remove <ref>                             e.g. remove R1\n"
                     + "rename net <old-name> <new-name>         e.g. rename net N1 VIN\n"

@@ -69,7 +69,7 @@ public class Mt3608 extends IC {
         if (sw != null) {
             boolean diodeFound = false;
             for (Pin pin : sw.getPins()) {
-                if (pin.getOwner().getTypeName().equals("diode") && pin.getName().equals("A")) {
+                if (pin.getOwner().getTypeName().equals("diode") && pin.getName().equals("ANODE")) {
                     diodeFound = true;
                     out = pin.getOwner().getPin("K").getNet();
                 }
