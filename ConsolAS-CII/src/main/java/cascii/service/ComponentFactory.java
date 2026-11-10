@@ -45,7 +45,8 @@ public class ComponentFactory {
                     requireNoValue(key, value);
                     return new Ams1117(key.substring("AMS1117-".length()));
                 }
-                throw new ConfigurationException("Unknown component type: " + type + " (R, C, L, D, LED, TP4056, AMS1117-<1.2|1.5|1.8|2.5|2.85|3.3|5.0|ADJ>), MT3608");
+                throw new ConfigurationException("Unknown component type: " + type
+                        + " (R, C, L, D, LED, TP4056, MT3608, AMS1117-<1.2|1.5|1.8|2.5|2.85|3.3|5.0|ADJ>)");
         }
     }
 
