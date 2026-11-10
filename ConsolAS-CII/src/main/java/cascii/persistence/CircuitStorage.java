@@ -13,6 +13,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 // Saves a circuit as a simple text file, one line per item
@@ -24,6 +25,22 @@ import java.util.ArrayList;
 public class CircuitStorage {
     private final Path directory;
     private final ComponentFactory factory = new ComponentFactory();
+
+    private Path fileForIndex(int index) throws IOException {
+        try (var files = Files.list(directory)) {
+            var circuits = files
+                    .filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".txt"))
+                    .sorted()
+                    .toList();
+
+            if (index < 1 || index > circuits.size()) {
+                throw new IOException("Invalid circuit number: " + index);
+            }
+
+            return circuits.get(index - 1);
+        }
+    }
 
     public CircuitStorage(String directory) {
         this.directory = Path.of(directory);
@@ -59,8 +76,44 @@ public class CircuitStorage {
         }
     }
 
+    public String listSavedCircuits() {
+        Path directory = Paths.get("circuits");
+
+        try (var files = Files.list(directory)) {
+            var circuits = files
+                    .filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".txt"))
+                    .sorted()
+                    .toList();
+
+            if (circuits.isEmpty()) {
+                return "No saved circuits found";
+            }
+
+            StringBuilder sb = new StringBuilder("Saved circuits:");
+
+            for (int i = 0; i < circuits.size(); i++) {
+                sb.append("\n")
+                        .append(i + 1)
+                        .append(" - ")
+                        .append(circuits.get(i).getFileName());
+            }
+
+            return sb.toString();
+
+        } catch (IOException e) {
+            return "Could not list saved circuits: " + e.getMessage();
+        }
+    }
+
     public Circuit load(String name) throws IOException {
-        Path file = fileFor(name);
+        Path file;
+
+        if (name.matches("\\d+")) {
+            file = fileForIndex(Integer.parseInt(name));
+        } else {
+            file = fileFor(name);
+        }
 
         if (!Files.exists(file)) {
             throw new IOException("No saved circuit named '" + name + "'");

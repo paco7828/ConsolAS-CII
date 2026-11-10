@@ -26,12 +26,13 @@ public class Simulator {
                     + "rename net <old-name> <new-name>         e.g. rename net N1 VIN\n"
                     + "draw [ref]                               draw the whole schematic, or only one part (draw U1)\n"
                     + "show pins <ref>                          pins of a part and what they are connected to\n"
-                    + "list [sort ref|type|value]               list the parts\n"
+                    + "components [sort ref|type|value]         list the parts\n"
                     + "nets                                     list the nets\n"
                     + "run drc                                  design rule check: look for problems in the circuit\n"
                     + "analyze <ref> <args>                     e.g. analyze U1 5 200m (input voltage, load current)\n"
                     + "clear | cls                               clear the screen\n"
                     + "rename circuit <new-name>                 e.g. rename circuit My charger\n"
+                    + "circuits                                  list saved circuits\n"
                     + "new <name> | save | load <name> | help | exit";
 
     private final ComponentFactory factory = new ComponentFactory();
@@ -46,7 +47,7 @@ public class Simulator {
             case "disconnect" -> disconnect(parts);
             case "remove" -> remove(parts);
             case "draw" -> draw(parts);
-            case "list" -> list(parts);
+            case "components" -> listComponents(parts);
             case "nets" -> nets();
             case "show" -> showPins(parts);
             case "run" -> run(parts);
@@ -65,6 +66,7 @@ public class Simulator {
                 yield "Circuit '" + circuit.getName() + "' loaded";
             }
             case "help" -> HELP;
+            case "circuits" -> storage.listSavedCircuits();
             default -> throw new ConfigurationException("Unknown command: " + parts[0] + " (type 'help')");
         };
     }
@@ -133,7 +135,7 @@ public class Simulator {
         return sb.toString();
     }
 
-    private String list(String[] parts) {
+    private String listComponents(String[] parts) {
         Comparator<Component> comparator;
 
         if (parts.length == 1) {
@@ -141,7 +143,7 @@ public class Simulator {
         } else if (parts.length == 3 && parts[1].equalsIgnoreCase("sort")) {
             comparator = comparatorFor(parts[2]);
         } else {
-            throw new ConfigurationException("Usage: list [sort ref|type|value]");
+            throw new ConfigurationException("Usage: components [sort ref|type|value]");
         }
 
         StringBuilder sb = new StringBuilder("Circuit: " + circuit.getName());
