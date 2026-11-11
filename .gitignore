@@ -1,3 +1,16 @@
-target/
-projects/
+# IDE metadata
 .idea/
+*.iml
+.vscode/
+
+# Build output
+target/
+out/
+*.class
+
+# Local data (saved circuits)
+circuits/
+
+# OS files
+.DS_Store
+Thumbs.db
