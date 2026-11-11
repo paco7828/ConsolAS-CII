@@ -1,16 +1,6 @@
 package cascii.service;
 
-import cascii.domain.Ams1117;
-import cascii.domain.Tp4056;
-import cascii.domain.Mt3608;
-import cascii.domain.Capacitor;
-import cascii.domain.Component;
-import cascii.domain.ConfigurationException;
-import cascii.domain.Diode;
-import cascii.domain.Inductor;
-import cascii.domain.Led;
-import cascii.domain.Resistor;
-import cascii.domain.Units;
+import cascii.domain.*;
 
 // Factory pattern: creates the right Component subclass from a short key like "R"
 public class ComponentFactory {

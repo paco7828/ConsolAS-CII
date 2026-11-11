@@ -1,17 +1,11 @@
 package cascii.service;
 
-import cascii.domain.Circuit;
-import cascii.domain.Component;
-import cascii.domain.ConfigurationException;
-import cascii.domain.Net;
-import cascii.domain.Pin;
-import cascii.domain.TextUtil;
+import cascii.domain.*;
 import cascii.persistence.CircuitStorage;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 
 // Handles console commands
@@ -30,9 +24,9 @@ public class Simulator {
                     + "nets                                     list the nets\n"
                     + "run drc                                  design rule check: look for problems in the circuit\n"
                     + "analyze <ref> <args>                     e.g. analyze U1 5 200m (input voltage, load current)\n"
-                    + "clear | cls                               clear the screen\n"
-                    + "rename circuit <new-name>                 e.g. rename circuit My charger\n"
-                    + "circuits                                  list saved circuits\n"
+                    + "clear | cls                              clear the screen\n"
+                    + "rename circuit <new-name>                e.g. rename circuit My charger\n"
+                    + "circuits                                 list saved circuits\n"
                     + "new <name> | save | load <name> | help | exit";
 
     private final ComponentFactory factory = new ComponentFactory();

@@ -194,7 +194,7 @@ public class Circuit {
                     + ", connecting it to " + name + " would short the two nets");
         }
 
-        Net target = findNamedNet(name);
+        Net target = findNet(name);
 
         if (target == null) {
             target = new Net(name, true);
@@ -240,15 +240,6 @@ public class Circuit {
             }
             nets.remove(net);
         }
-    }
-
-    private Net findNamedNet(String name) {
-        for (Net net : nets) {
-            if (net.isNamed() && net.getName().equals(name)) {
-                return net;
-            }
-        }
-        return null;
     }
 
     // Net names: letters, digits, _, + and an optional voltage in brackets

@@ -1,20 +1,16 @@
 package cascii.persistence;
 
-import cascii.domain.Circuit;
-import cascii.domain.Component;
-import cascii.domain.ConfigurationException;
-import cascii.domain.Net;
-import cascii.domain.Pin;
-import cascii.domain.TextUtil;
+import cascii.domain.*;
 import cascii.service.ComponentFactory;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 
 // Saves a circuit as a simple text file, one line per item
 /*
@@ -26,20 +22,29 @@ public class CircuitStorage {
     private final Path directory;
     private final ComponentFactory factory = new ComponentFactory();
 
-    private Path fileForIndex(int index) throws IOException {
-        try (var files = Files.list(directory)) {
-            var circuits = files
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".txt"))
-                    .sorted()
-                    .toList();
-
-            if (index < 1 || index > circuits.size()) {
-                throw new IOException("Invalid circuit number: " + index);
-            }
-
-            return circuits.get(index - 1);
+    // The saved circuit files in order (the numbers of the 'circuits' command)
+    private ArrayList<Path> savedFiles() throws IOException {
+        ArrayList<Path> files = new ArrayList<>();
+        if (!Files.exists(directory)) {
+            return files;
         }
+
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, "*.txt")) {
+            for (Path path : stream) {
+                files.add(path);
+            }
+        }
+
+        Collections.sort(files);
+        return files;
+    }
+
+    private Path fileForIndex(int index) throws IOException {
+        ArrayList<Path> files = savedFiles();
+        if (index < 1 || index > files.size()) {
+            throw new IOException("Invalid circuit number: " + index);
+        }
+        return files.get(index - 1);
     }
 
     public CircuitStorage(String directory) {
@@ -76,40 +81,10 @@ public class CircuitStorage {
         }
     }
 
-    public String listSavedCircuits() {
-        Path directory = Paths.get("circuits");
-
-        try (var files = Files.list(directory)) {
-            var circuits = files
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".txt"))
-                    .sorted()
-                    .toList();
-
-            if (circuits.isEmpty()) {
-                return "No saved circuits found";
-            }
-
-            StringBuilder sb = new StringBuilder("Saved circuits:");
-
-            for (int i = 0; i < circuits.size(); i++) {
-                sb.append("\n")
-                        .append(i + 1)
-                        .append(" - ")
-                        .append(circuits.get(i).getFileName());
-            }
-
-            return sb.toString();
-
-        } catch (IOException e) {
-            return "Could not list saved circuits: " + e.getMessage();
-        }
-    }
-
     public Circuit load(String name) throws IOException {
         Path file;
 
-        if (name.matches("\\d+")) {
+        if (name.matches("\\d{1,6}")) {
             file = fileForIndex(Integer.parseInt(name));
         } else {
             file = fileFor(name);
@@ -157,5 +132,18 @@ public class CircuitStorage {
 
     private Path fileFor(String name) {
         return directory.resolve(name.trim().replaceAll("[^A-Za-z0-9_-]", "_") + ".txt");
+    }
+
+    public String listSavedCircuits() throws IOException {
+        ArrayList<Path> files = savedFiles();
+        if (files.isEmpty()) {
+            return "No saved circuits found";
+        }
+
+        StringBuilder sb = new StringBuilder("Saved circuits:");
+        for (int i = 0; i < files.size(); i++) {
+            sb.append("\n").append(i + 1).append(" - ").append(files.get(i).getFileName());
+        }
+        return sb.toString();
     }
 }

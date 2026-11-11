@@ -5,8 +5,8 @@ public class Resistor extends TwoPinComponent {
 
     public Resistor(double ohms) {
         super("R", "1", "2");
-        if (ohms < 0 || !Double.isFinite(ohms)) {
-            throw new ConfigurationException("Resistance must be a non-negative finite number");
+        if (ohms < 0) {
+            throw new ConfigurationException("Resistance must be greater than or equal to 0");
         }
         this.ohms = ohms;
     }
