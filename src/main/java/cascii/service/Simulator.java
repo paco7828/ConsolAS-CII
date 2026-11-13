@@ -180,12 +180,17 @@ public class Simulator {
         nets.sort((a, b) -> a.getName().compareTo(b.getName()));
         StringBuilder sb = new StringBuilder();
 
+        int width = 0;
+        for (Net net : nets) {
+            width = Math.max(width, net.getName().length() + 2);
+        }
+
         for (Net net : nets) {
             if (!sb.isEmpty()) {
                 sb.append("\n");
             }
 
-            sb.append(TextUtil.padRight(net.getName() + ":", 6));
+            sb.append(TextUtil.padRight(net.getName() + ":", width));
             ArrayList<Pin> pins = net.getPins();
             for (int i = 0; i < pins.size(); i++) {
                 if (i > 0) {
