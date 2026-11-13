@@ -114,7 +114,7 @@ classDiagram
     TwoPinComponent <|-- Capacitor
     TwoPinComponent <|-- Inductor
     TwoPinComponent <|-- Diode
-    Diode <|-- Led
+    TwoPinComponent <|-- Led
     IC <|-- Ams1117
     IC <|-- Tp4056
     IC <|-- Mt3608
