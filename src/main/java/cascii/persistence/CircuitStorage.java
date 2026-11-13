@@ -6,11 +6,9 @@ import cascii.service.ComponentFactory;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 
 // Saves a circuit as a simple text file, one line per item
 /*
@@ -22,29 +20,32 @@ public class CircuitStorage {
     private final Path directory;
     private final ComponentFactory factory = new ComponentFactory();
 
-    // The saved circuit files in order (the numbers of the 'circuits' command)
     private ArrayList<Path> savedFiles() throws IOException {
-        ArrayList<Path> files = new ArrayList<>();
-        if (!Files.exists(directory)) {
-            return files;
+        ArrayList<Path> circuits = new ArrayList<>();
+
+        if (!Files.isDirectory(directory)) {
+            return circuits;
         }
 
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, "*.txt")) {
-            for (Path path : stream) {
-                files.add(path);
+        try (var files = Files.list(directory)) {
+            for (Path path : files.sorted().toList()) {
+                if (Files.isRegularFile(path) && path.toString().endsWith(".txt")) {
+                    circuits.add(path);
+                }
             }
         }
 
-        Collections.sort(files);
-        return files;
+        return circuits;
     }
 
     private Path fileForIndex(int index) throws IOException {
-        ArrayList<Path> files = savedFiles();
-        if (index < 1 || index > files.size()) {
+        ArrayList<Path> circuits = savedFiles();
+
+        if (index < 1 || index > circuits.size()) {
             throw new IOException("Invalid circuit number: " + index);
         }
-        return files.get(index - 1);
+
+        return circuits.get(index - 1);
     }
 
     public CircuitStorage(String directory) {
@@ -134,16 +135,23 @@ public class CircuitStorage {
         return directory.resolve(name.trim().replaceAll("[^A-Za-z0-9_-]", "_") + ".txt");
     }
 
-    public String listSavedCircuits() throws IOException {
-        ArrayList<Path> files = savedFiles();
-        if (files.isEmpty()) {
-            return "No saved circuits found";
-        }
+    public String listSavedCircuits() {
+        try {
+            ArrayList<Path> circuits = savedFiles();
 
-        StringBuilder sb = new StringBuilder("Saved circuits:");
-        for (int i = 0; i < files.size(); i++) {
-            sb.append("\n").append(i + 1).append(" - ").append(files.get(i).getFileName());
+            if (circuits.isEmpty()) {
+                return "No saved circuits found";
+            }
+
+            StringBuilder sb = new StringBuilder("Saved circuits:");
+
+            for (int i = 0; i < circuits.size(); i++) {
+                sb.append("\n").append(i + 1).append(" - ").append(circuits.get(i).getFileName());
+            }
+
+            return sb.toString();
+        } catch (IOException e) {
+            return "Could not list saved circuits: " + e.getMessage();
         }
-        return sb.toString();
     }
 }
