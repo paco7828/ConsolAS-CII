@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 470" font-family="Segoe UI, Arial, sans-serif" font-size="14">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+  </defs>
+  <rect width="820" height="470" fill="#ffffff"/>
+  <g stroke="#334155" stroke-width="1.5" fill="none" marker-end="url(#a)">
+    <path d="M410 62 V90"/>
+    <path d="M410 142 V170"/>
+    <path d="M330 222 L180 270"/>
+    <path d="M410 222 V270"/>
+    <path d="M490 222 L640 270"/>
+    <path d="M180 322 L330 370"/>
+    <path d="M410 322 V370"/>
+    <path d="M640 322 L490 370"/>
+    <path d="M280 396 H150 V116 H320" stroke-dasharray="5 4"/>
+  </g>
+  <g stroke="#334155" stroke-width="1.5">
+    <rect x="320" y="12" width="180" height="50" rx="25" fill="#e2e8f0"/>
+    <rect x="320" y="90" width="180" height="52" rx="6" fill="#dbeafe"/>
+    <rect x="320" y="170" width="180" height="52" rx="6" fill="#dbeafe"/>
+    <rect x="80" y="270" width="200" height="52" rx="6" fill="#dcfce7"/>
+    <rect x="310" y="270" width="200" height="52" rx="6" fill="#dcfce7"/>
+    <rect x="540" y="270" width="200" height="52" rx="6" fill="#dcfce7"/>
+    <rect x="280" y="370" width="260" height="52" rx="6" fill="#fef9c3"/>
+  </g>
+  <g text-anchor="middle" fill="#0f172a">
+    <text x="410" y="42" font-weight="600">User types a command</text>
+    <text x="410" y="112" font-weight="600">Main</text>
+    <text x="410" y="131" font-size="12">read loop, clear/cls, exit</text>
+    <text x="410" y="192" font-weight="600">Simulator.execute</text>
+    <text x="410" y="211" font-size="12">parse and dispatch the command</text>
+    <text x="180" y="292" font-weight="600">ComponentFactory</text>
+    <text x="180" y="311" font-size="12">add: text → Component subclass</text>
+    <text x="410" y="292" font-weight="600">Circuit</text>
+    <text x="410" y="311" font-size="12">components, nets, check, analyze</text>
+    <text x="640" y="292" font-weight="600">CircuitStorage</text>
+    <text x="640" y="311" font-size="12">save / load circuits/*.txt</text>
+    <text x="410" y="392" font-weight="600">Main prints result or error</text>
+    <text x="410" y="411" font-size="12">ConfigurationException → readable message</text>
+    <text x="110" y="250" font-size="12" fill="#475569">add</text>
+    <text x="450" y="250" font-size="12" fill="#475569">connect, draw, run drc, analyze …</text>
+    <text x="620" y="250" font-size="12" fill="#475569">save, load, circuits</text>
+    <text x="136" y="190" font-size="12" fill="#475569" text-anchor="middle" transform="rotate(-90 136 190)">next prompt</text>
+  </g>
+</svg>

@@ -1,0 +1,215 @@
+--- Example program ---
+
+# Program welcome messages
+Settings loaded from config.properties
+Consolas-CII - console schematic builder - type 'help' or 'exit'
+
+
+# Get to know the available commands
+> help
+add <R|C|L> <value>                     e.g. add R 50k | add resistor 50k | add C 100n
+add <D|LED|TP4056|MT3608|AMS1117-x>      no value, e.g. add LED | add TP4056 | add AMS1117-3.3
+                                         (AMS1117-x: 1.2 1.5 1.8 2.5 2.85 3.3 5.0 ADJ)
+connect <pin|net> <pin|net>              e.g. connect R1.1 U1.VIN | connect C1.2 GND | connect LED1.ANODE VCC(5V)
+disconnect <pin>                         e.g. disconnect R1.1
+remove <ref>                             e.g. remove R1
+rename net <old-name> <new-name>         e.g. rename net N1 VIN
+draw [ref]                               draw the whole schematic, or only one part (draw U1)
+show pins <ref>                          pins of a part and what they are connected to
+components [sort ref|type|value]         list the parts
+nets                                     list the nets
+run drc                                  design rule check: look for problems in the circuit
+analyze <ref> <args>                     e.g. analyze U1 5 200m (input voltage, load current)
+clear | cls                              clear the screen
+rename circuit <new-name>                e.g. rename circuit My charger
+circuits                                 list saved circuits
+new <name> | save | load <name> | help | exit
+
+# Adding needed components
+> add capacitor 22uF
+C1 added: capacitor 22u
+> add capacitor 22uF
+C2 added: capacitor 22u
+> add MT3608
+U1 added: MT3608 (2A step-up converter)
+> add diode
+D1 added: diode
+> add resistor 7.5k
+R1 added: resistor 7.5k
+> add resistor 1k
+R2 added: resistor 1k
+> add inductor 22uH
+L1 added: inductor 22u
+
+# Connect components
+> connect U1.1 L1.1
+U1.1 -- L1.1  (net N1)
+> connect U1.1 D1.anode
+U1.1 -- D1.ANODE  (net N1)
+> connect U1.2 GND
+U1.2 -- GND  (net GND)
+> connect U1.3 R1.2
+U1.3 -- R1.2  (net N2)
+> connect U1.3 R2.1
+U1.3 -- R2.1  (net N2)
+> connect R1.1 D1.Cathode
+R1.1 -- D1.CATHODE  (net N3)
+> connect R2.2 GND
+R2.2 -- GND  (net GND)
+> connect U1.4 U1.5
+U1.4 -- U1.5  (net N4)
+> connect U1.5 C2.1
+U1.5 -- C2.1  (net N4)
+> connect C2.1 L1.2
+C2.1 -- L1.2  (net N4)
+> connect C2.2 GND
+C2.2 -- GND  (net GND)
+> connect C1.1 R1.1
+C1.1 -- R1.1  (net N3)
+> connect C1.2 GND
+C1.2 -- GND  (net GND)
+
+# Check connections with the visual representation
+> draw
+C1  capacitor 22u
+    R1.1,D1.CATHODE ───┤├─── GND
+
+C2  capacitor 22u
+    U1.EN,U1.IN,L1.2 ───┤├─── GND
+
+D1  diode
+    U1.SW,L1.1 ───|>|─── R1.1,C1.1
+
+L1  inductor 22u
+    U1.SW,D1.ANODE ───((((((─── U1.EN,U1.IN,C2.1
+
+R1  resistor 7.5k
+    D1.CATHODE,C1.1 ───[ 7.5k ]─── U1.FB,R2.1
+
+R2  resistor 1k
+    U1.FB,R1.2 ───[ 1k ]─── GND
+
+U1  MT3608 (2A step-up converter)
+                    ┌─────────────┐
+    L1.1,D1.ANODE ──┤ 1 SW   NC 6 ├── NC
+              GND ──┤ 2 GND  IN 5 ├── U1.EN,C2.1,L1.2
+        R1.2,R2.1 ──┤ 3 FB   EN 4 ├── U1.IN,C2.1,L1.2
+                    └─────────────┘
+
+# List nets
+> nets
+GND: U1.GND, R2.2, C2.2, C1.2
+N1:  U1.SW, L1.1, D1.ANODE
+N2:  U1.FB, R1.2, R2.1
+N3:  R1.1, D1.CATHODE, C1.1
+N4:  U1.EN, U1.IN, C2.1, L1.2
+
+# Rename nets for better understanding
+> rename net N1 MT3608_SW
+Net N1 renamed to MT3608_SW
+> rename net N2 MT3608_FB
+Net N2 renamed to MT3608_FB
+> rename net N3 +5V
+Net N3 renamed to +5V
+> rename net N4 +BAT
+Net N4 renamed to +BAT
+
+# Check net names at visual representation
+> draw
+C1  capacitor 22u
+    +5V ───┤├─── GND
+
+C2  capacitor 22u
+    +BAT ───┤├─── GND
+
+D1  diode
+    MT3608_SW ───|>|─── +5V
+
+L1  inductor 22u
+    MT3608_SW ───((((((─── +BAT
+
+R1  resistor 7.5k
+    +5V ───[ 7.5k ]─── MT3608_FB
+
+R2  resistor 1k
+    MT3608_FB ───[ 1k ]─── GND
+
+U1  MT3608 (2A step-up converter)
+                ┌─────────────┐
+    MT3608_SW ──┤ 1 SW   NC 6 ├── NC
+          GND ──┤ 2 GND  IN 5 ├── +BAT
+    MT3608_FB ──┤ 3 FB   EN 4 ├── +BAT
+                └─────────────┘
+
+# Check design rules
+> run drc
+OK, no problems found
+
+# Intentional error to understand the syntax
+> analyze U1
+ERROR: Usage: analyze U1 <input voltage> [load current]
+example: analyze U1 5 200m
+
+# Test circuit with 3.7V input 600mA current
+> analyze U1 3.7V 600mA
+U1 analysis
+  Vin   = 3.7 V
+  Vout  = 5.1 V (set by R1 and R2)
+  Iout  = 0.6 A
+  Duty  = 27.5 %
+  Iin   = 0.973 A (at 85.0 % efficiency)
+  Loss  = 0.54 W
+
+# Test circuit with 4.2V input 600mA current
+> analyze U1 4.2V 600mA
+U1 analysis
+  Vin   = 4.2 V
+  Vout  = 5.1 V (set by R1 and R2)
+  Iout  = 0.6 A
+  Duty  = 17.6 %
+  Iin   = 0.857 A (at 85.0 % efficiency)
+  Loss  = 0.54 W
+
+# Test circuit with 4.2V input 2A current
+> analyze U1 4.2V 2A
+U1 analysis
+  Vin   = 4.2 V
+  Vout  = 5.1 V (set by R1 and R2)
+  Iout  = 2.0 A
+  Duty  = 17.6 %
+  Iin   = 2.857 A (at 85.0 % efficiency)
+  Loss  = 1.8 W
+
+# Rename circuit from "untitled"
+> rename circuit MT3608_Battery_5V_step_up
+Circuit renamed to 'MT3608_Battery_5V_step_up'
+
+# Save circuit to "circuits" folder for future use
+> save
+Circuit 'MT3608_Battery_5V_step_up' saved
+
+# Exit the program
+> exit
+
+
+--- Example importing ---
+
+# New program welcome messages
+Settings loaded from config.properties
+Consolas-CII - console schematic builder - type 'help' or 'exit'
+
+# List saved circuits
+> circuits
+Saved circuits:
+1 - MT3608_Battery_5V_step_up.txt
+
+# Load previously saved circuit way 1
+> load 1
+Circuit 'MT3608_Battery_5V_step_up' loaded
+
+# Load previously saved circuit way 2
+> load MT3608_Battery_5V_step_up
+Circuit 'MT3608_Battery_5V_step_up' loaded
+
+# Exit the program
+> exit
