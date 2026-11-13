@@ -1,125 +1,226 @@
-# Embedded Prototyping Simulator
+# ConsolAS-CII
 
-The **Embedded Prototyping Simulator** is a console-based Java application designed to simulate the process of building and testing a small embedded system.
+Console schematic builder written in Java 17. The user places electronic components, connects their pins,
+and gets an ASCII drawing, a design rule check and simple calculations (voltage regulator, Li-ion charger,
+boost converter) without any GUI.
 
-The user can create a virtual project, select a microcontroller such as an **ESP32** or **STM32**, and add different sensors and peripherals to it. Devices can be connected through interfaces such as **I2C, SPI, or UART**, depending on their capabilities.
+The example circuit used in this README is a **5 V boost converter built around the MT3608**,
+powered from a Li-ion battery (+BAT).
 
-The application can simulate basic operations of the connected components. For example, the user can request a measurement from a sensor and receive simulated sensor data.
+## Prerequisites
 
-The system also validates device compatibility and reports configuration errors when an invalid connection or configuration is attempted.
+- JDK 17 or newer
+- Maven 3.8 or newer
 
-Projects and their configurations can be saved and loaded so that the user can continue working on them later.
+## Build and run
 
-The main goal of the project is to provide a simple environment for experimenting with **embedded-system concepts without requiring physical hardware**.
+Run all commands from the repository root (the program reads `config.properties` and saves circuits to `circuits/` in the current folder).
 
----
-
-## Microcontrollers
-
-| MCU       | Command            | Features                                             |
-| --------- | ------------------ | ---------------------------------------------------- |
-| **ESP32** | `create-mcu-esp32` | Wi-Fi, Bluetooth/BLE, I2C, SPI, UART, GPIO, ADC, PWM |
-| **STM32** | `create-mcu-stm32` | High performance, I2C, SPI, UART, GPIO, ADC, PWM     |
-
-Example output:
-
-```text
-esp32 (n) created
-stm32 (n) created
+```
+mvn clean package
+java -jar target/ConsolAS-CII-1.0.0.jar
 ```
 
-Where `n` is the number of the given MCU type currently created.
+`mvn clean package` also runs the unit tests (JUnit 5). Run only the tests with `mvn test`.
 
----
+On Windows, for the box-drawing characters, run `chcp 65001` in the terminal before starting the program.
+The `clear` / `cls` command needs a real terminal (it does nothing in the IntelliJ Run window).
 
-# Sensors
+## How it works
 
-| Sensor                     | Measurements / Output                                          |
-| -------------------------- | -------------------------------------------------------------- |
-| **Temperature + Humidity** | Temperature (°C), relative humidity (%)                        |
-| **Barometer**              | Atmospheric pressure (hPa)                                     |
-| **9DOF IMU**               | Accelerometer (X/Y/Z), gyroscope (X/Y/Z), magnetometer (X/Y/Z) |
-| **Light Sensor**           | Visible light, infrared, UV                                    |
-| **Distance Sensor**        | Distance (mm)                                                  |
-| **Motion Sensor**          | `0` = no motion, `1` = motion detected                         |
-| **Hall Effect Sensor**     | `0` = no magnetic field, `1` = magnetic field detected         |
-| **Gas + CO₂ Sensor**       | Gas concentration (analog), CO₂ concentration (ppm)            |
-| **Soil Moisture Sensor**   | Soil moisture (%) — analog                                     |
-| **Rain Sensor**            | `0` = no water, `1` = water detected                           |
-| **Water Level Sensor**     | Water level (0–100%)                                           |
-| **GPS**                    | Latitude, longitude, speed, time                               |
+![Workflow](docs/workflow.svg)
 
----
+`Main` reads a line, `Simulator` parses it and calls `ComponentFactory` (add), `Circuit` (wiring, check, analysis)
+or `CircuitStorage` (save / load). Errors are reported as readable messages, the program keeps running.
 
-# Peripherals
+## Sample usage
 
-| Peripheral  | Function                            |
-| ----------- | ----------------------------------- |
-| **Display** | Text output                         |
-| **RGB LED** | Visual indicator, RGB color control |
-| **Button**  | Digital input (`0` / `1`)           |
-| **Buzzer**  | Sound output                        |
-| **SD Card** | Read and write data                 |
-| **RTC**     | Read and store time information     |
+Example circuit: MT3608 step-up converter, +BAT (3.0-4.2 V) to +5 V.
+The output voltage is set by the divider R1 / R2: `Vout = 0.6 V * (1 + R1 / R2)`.
 
----
+### Expected schematic
 
-# Communication Interfaces
+The circuit drawn in an EDA tool. This is what we want to build with the program:
 
-| Interface | Purpose                             |
-| --------- | ----------------------------------- |
-| **GPIO**  | Digital input/output                |
-| **ADC**   | Analog input                        |
-| **PWM**   | Output/control signals              |
-| **I2C**   | Sensor and peripheral communication |
-| **SPI**   | High-speed peripheral communication |
-| **UART**  | Serial communication                |
+![Expected schematic](docs/example-schematic.png)
 
----
+### Build it in the console
 
-# Core Features
+```
+# Add the needed components
+> add capacitor 22uF
+C1 added: capacitor 22u
+> add capacitor 22uF
+C2 added: capacitor 22u
+> add MT3608
+U1 added: MT3608 (2A step-up converter)
+> add diode
+D1 added: diode
+> add resistor 7.5k
+R1 added: resistor 7.5k
+> add resistor 1k
+R2 added: resistor 1k
+> add inductor 22uH
+L1 added: inductor 22u
 
-* Virtual MCU creation
-* Virtual sensor creation
-* Virtual peripheral creation
-* Device-to-MCU connections
-* Interface compatibility checking
-* Simulated sensor measurements
-* Digital input/output simulation
-* Analog input simulation
-* PWM simulation
-* I2C / SPI / UART communication
-* Project saving
-* Project loading
-* Configuration error reporting
+# Connect pins to pins; GND is a named net, the others get automatic names (N1, N2, ...)
+> connect U1.1 L1.1
+U1.1 -- L1.1  (net N1)
+> connect U1.1 D1.anode
+U1.1 -- D1.ANODE  (net N1)
+> connect U1.2 GND
+U1.2 -- GND  (net GND)
+> connect U1.3 R1.2
+U1.3 -- R1.2  (net N2)
+> connect U1.3 R2.1
+U1.3 -- R2.1  (net N2)
+> connect R1.1 D1.Cathode
+R1.1 -- D1.CATHODE  (net N3)
+> connect R2.2 GND
+R2.2 -- GND  (net GND)
+> connect U1.4 U1.5
+U1.4 -- U1.5  (net N4)
+> connect U1.5 C2.1
+U1.5 -- C2.1  (net N4)
+> connect C2.1 L1.2
+C2.1 -- L1.2  (net N4)
+> connect C2.2 GND
+C2.2 -- GND  (net GND)
+> connect C1.1 R1.1
+C1.1 -- R1.1  (net N3)
+> connect C1.2 GND
+C1.2 -- GND  (net GND)
 
----
-
-# Example Project
-
-```text
-Project: Weather Station
-
-ESP32
-├── Temperature + Humidity Sensor
-├── Barometer
-├── Light Sensor
-├── GPS
-├── Display
-├── RGB LED
-├── Buzzer
-└── SD Card
+# Give the nets meaningful names
+> rename net N1 MT3608_SW
+> rename net N2 MT3608_FB
+> rename net N3 +5V
+> rename net N4 +BAT
 ```
 
-Example commands:
+Pins can be given by number (`U1.1`) or by name (`D1.anode`). Connecting two pins creates a net,
+connecting a pin to a name (`GND`) creates or joins a named net.
 
-```text
-read temperature
-read humidity
-read pressure
-read light
-read gps
-display "System OK"
-set rgb 0 255 0
-write sd "measurement.txt"
+### Check the result (ASCII output)
+
 ```
+> draw
+C1  capacitor 22u
+    +5V ───┤├─── GND
+
+C2  capacitor 22u
+    +BAT ───┤├─── GND
+
+D1  diode
+    MT3608_SW ───|>|─── +5V
+
+L1  inductor 22u
+    MT3608_SW ───((((((─── +BAT
+
+R1  resistor 7.5k
+    +5V ───[ 7.5k ]─── MT3608_FB
+
+R2  resistor 1k
+    MT3608_FB ───[ 1k ]─── GND
+
+U1  MT3608 (2A step-up converter)
+                ┌─────────────┐
+    MT3608_SW ──┤ 1 SW   NC 6 ├── NC
+          GND ──┤ 2 GND  IN 5 ├── +BAT
+    MT3608_FB ──┤ 3 FB   EN 4 ├── +BAT
+                └─────────────┘
+
+> nets
++5V:       R1.1, D1.CATHODE, C1.1
++BAT:      U1.EN, U1.IN, C2.1, L1.2
+GND:       U1.GND, R2.2, C2.2, C1.2
+MT3608_FB: U1.FB, R1.2, R2.1
+MT3608_SW: U1.SW, L1.1, D1.ANODE
+```
+
+Each line of `draw` shows one part with the nets on its two sides (an IC is drawn as a box with its pins).
+Compare it with the real schematic: the same circuit, each part drawn with net labels
+(`NC` means not connected):
+
+![Real schematic](docs/real-schematic.png)
+
+### Design rule check and analysis
+
+```
+> run drc
+OK, no problems found
+
+> analyze U1
+ERROR: Usage: analyze U1 <input voltage> [load current]
+example: analyze U1 5 200m
+
+> analyze U1 3.7V 600mA
+U1 analysis
+  Vin   = 3.7 V
+  Vout  = 5.1 V (set by R1 and R2)
+  Iout  = 0.6 A
+  Duty  = 27.5 %
+  Iin   = 0.973 A (at 85.0 % efficiency)
+  Loss  = 0.54 W
+```
+
+`run drc` looks for wiring mistakes (for example a missing diode on the SW net or an unconnected required pin).
+`analyze` calculates the output voltage from the divider, the duty cycle, the input current and the losses.
+The wrong call above shows the error message; the program keeps running after any error.
+
+### Save and load
+
+```
+> rename circuit MT3608_Battery_5V_step_up
+> save
+Circuit 'MT3608_Battery_5V_step_up' saved
+> exit
+```
+
+At the next start:
+
+```
+> circuits
+Saved circuits:
+1 - MT3608_Battery_5V_step_up.txt
+> load 1
+Circuit 'MT3608_Battery_5V_step_up' loaded
+> load MT3608_Battery_5V_step_up
+Circuit 'MT3608_Battery_5V_step_up' loaded
+```
+
+The files are saved in the `circuits/` folder, a loaded circuit can be loaded by number or by name.
+A complete console session of this example is in [docs/example-program.txt](docs/example-program.txt).
+
+Other commands: `components [sort ref|type|value]`, `show pins <ref>`, `disconnect`, `remove`, `new <name>`,
+`clear`, `help`, `exit`. Type `help` for the full list.
+
+## Configuration
+
+Constants such as reference voltages and limits are in `config.properties`. If the file is missing,
+built-in default values are used.
+
+## Implemented requirements
+
+- Domain model with abstraction, inheritance and polymorphism: `Component` -> `TwoPinComponent` / `IC` -> concrete parts.
+- Relationships: `Circuit` has components and nets, components have pins, pins belong to nets.
+- Validation and exception handling: `ConfigurationException`, readable messages, no crash on wrong input.
+- Persistence: circuits are saved to and loaded from text files (`circuits/<name>.txt`).
+- Sorting: `components sort ref|type|value` with `Comparator` and `Comparable`.
+- Design pattern: Factory (below).
+- Unit tests: JUnit 5 (`src/test`).
+- Docs: [problem statement, user stories, UML and design](docs/).
+
+## Design pattern: Factory
+
+`ComponentFactory.create(type, value)` converts the typed text (`R`, `resistor`, `AMS1117-3.3`, ...) into a
+`Component` subclass. `Simulator` and `CircuitStorage` only know the abstract `Component`, so a new part needs one
+new subclass and one new case in the factory, and no command changes. Details and the UML diagram: [docs/](docs/).
+
+## Contributors
+
+- Kőszegi Patrik ([paco7828](https://github.com/paco7828))
+
+## License
+
+MIT, see [LICENSE](LICENSE).
