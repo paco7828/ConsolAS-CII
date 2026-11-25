@@ -28,6 +28,9 @@ public abstract class IC extends Component {
         return null;
     }
 
+    // Every IC calculates its own operating point
+    public abstract String analyze(String[] args);
+
     @Override
     public String draw() {
         ArrayList<Pin> pins = getPins();
