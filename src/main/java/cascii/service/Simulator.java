@@ -262,7 +262,14 @@ public class Simulator {
         }
 
         Component component = circuit.find(parts[1]);
-        return component.analyze(Arrays.copyOfRange(parts, 2, parts.length));
+
+        if (!(component instanceof IC)) {
+            throw new ConfigurationException(component.getRef() + " (" + component.getTypeName()
+                    + ") can not be analyzed, only ICs can");
+        }
+
+        IC ic = (IC) component;
+        return ic.analyze(Arrays.copyOfRange(parts, 2, parts.length));
     }
 
     private static String rest(String line, String usage) {

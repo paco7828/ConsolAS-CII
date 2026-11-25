@@ -98,12 +98,6 @@ public abstract class Component implements Comparable<Component> {
         return problems;
     }
 
-    // Calculation for the part
-    // Only some parts (ICs) can do this
-    public String analyze(String[] args) {
-        throw new ConfigurationException(getRef() + " (" + getTypeName() + ") has nothing to analyze");
-    }
-
     // Natural order: by prefix, then by number (R1, R2, R10, C1, ...)
     @Override
     public int compareTo(Component other) {

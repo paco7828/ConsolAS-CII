@@ -112,7 +112,7 @@ class Ams1117Test {
     void regulatesWhenTheInputIsHighEnough() {
         circuit.add(new Ams1117("3.3"));
 
-        String result = circuit.find("U1").analyze(new String[]{"5", "100m"});
+        String result = ((IC) circuit.find("U1")).analyze(new String[]{"5", "100m"});
 
         assertTrue(result.contains("Vout  = 3.3 V (regulating)"));
         assertTrue(result.contains("Power = 0.17 W"));
@@ -122,7 +122,7 @@ class Ams1117Test {
     void dropsOutWhenTheInputIsTooLow() {
         circuit.add(new Ams1117("3.3"));
 
-        String result = circuit.find("U1").analyze(new String[]{"4"});
+        String result = ((IC) circuit.find("U1")).analyze(new String[]{"4"});
 
         assertTrue(result.contains("Vout  = 2.7 V (dropout"));
     }
@@ -131,7 +131,7 @@ class Ams1117Test {
     void warnsAboutVoltageAndCurrentLimits() {
         circuit.add(new Ams1117("3.3"));
 
-        String result = circuit.find("U1").analyze(new String[]{"20", "2"});
+        String result = ((IC) circuit.find("U1")).analyze(new String[]{"20", "2"});
 
         assertTrue(result.contains("WARNING: the input voltage is above the maximum (15.0 V)"));
         assertTrue(result.contains("WARNING: the load current is above the maximum (1.0 A)"));
@@ -141,7 +141,7 @@ class Ams1117Test {
     void analyzeNeedsTheRightNumberOfArguments() {
         circuit.add(new Ams1117("3.3"));
 
-        assertThrows(ConfigurationException.class, () -> circuit.find("U1").analyze(new String[0]));
+        assertThrows(ConfigurationException.class, () -> ((IC) circuit.find("U1")).analyze(new String[0]));
     }
 
     @Test
@@ -155,7 +155,7 @@ class Ams1117Test {
         circuit.connect("R2.1", "U1.ADJ");
         circuit.connect("R2.2", "GND");
 
-        String result = circuit.find("U1").analyze(new String[]{"5"});
+        String result = ((IC) circuit.find("U1")).analyze(new String[]{"5"});
 
         assertTrue(result.contains("Vout  = 3.303 V (regulating)"));
     }
@@ -164,6 +164,6 @@ class Ams1117Test {
     void adjustableVersionNeedsItsResistors() {
         circuit.add(new Ams1117("ADJ"));
 
-        assertThrows(ConfigurationException.class, () -> circuit.find("U1").analyze(new String[]{"5"}));
+        assertThrows(ConfigurationException.class, () -> ((IC) circuit.find("U1")).analyze(new String[]{"5"}));
     }
 }

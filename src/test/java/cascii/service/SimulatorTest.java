@@ -132,4 +132,11 @@ class SimulatorTest {
         assertTrue(help.contains("draw"));
         assertTrue(help.contains("run drc"));
     }
+
+    @Test
+    void onlyIcsCanBeAnalyzed() throws IOException {
+        simulator.execute("add R 1k");
+
+        assertThrows(ConfigurationException.class, () -> simulator.execute("analyze R1 5"));
+    }
 }
